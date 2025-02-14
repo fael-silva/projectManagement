@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: laravel-app
+    container_name: laravel-app
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/var/www
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=project_management
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=secret
+      - MAIL_HOST=mailhog
+      - MAIL_PORT=1025
+    depends_on:
+      - db
+      - mailhog
+
+  db:
+    image: postgres:14
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: project_management
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: mailhog
+    ports:
+      - "8025:8025"
+
+volumes:
+  pgdata:
