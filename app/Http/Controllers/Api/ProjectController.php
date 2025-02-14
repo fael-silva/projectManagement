@@ -73,19 +73,28 @@ class ProjectController extends Controller
     }
 
     public function index()
-    {
-        $projects = Project::where('user_id', auth()->id())
+{
+    $user = auth()->user();
+
+    if ($user->can('view all projects')) {
+        $projects = Project::with(['tasks', 'address'])->get();
+    } elseif ($user->can('view own projects')) {
+        $projects = Project::where('user_id', $user->id)
             ->with(['tasks', 'address'])
             ->get();
-
-        return response()->json($projects, 200);
+    } else {
+        return response()->json(['error' => 'Você não tem permissão para acessar os projetos.'], 403);
     }
+
+    return response()->json($projects, 200);
+}
+
 
     public function show($id)
     {
         $project = Project::where('id', $id)
             ->where('user_id', auth()->id())
-            ->with(['tasks', 'address']) 
+            ->with(['tasks', 'address'])
             ->first();
 
         if (!$project) {
@@ -108,7 +117,7 @@ class ProjectController extends Controller
             'tasks.*.description' => 'nullable|string',
             'tasks.*.status' => 'nullable|string|in:pendente,em andamento,concluído',
             'tasks_to_remove' => 'nullable|array',
-            'tasks_to_remove.*' => 'exists:tasks,id', 
+            'tasks_to_remove.*' => 'exists:tasks,id',
         ]);
 
         $project = Project::where('id', $id)
@@ -131,7 +140,7 @@ class ProjectController extends Controller
         if (isset($validated['cep'])) {
             $formattedCep = substr_replace($validated['cep'], '-', 5, 0);
             $address = Address::where('cep', $formattedCep)->first();
-            
+
             if (!$address) {
                 $viaCepData = $this->viaCepService->getAddressFromCep($formattedCep);
                 if (!$viaCepData) {
@@ -155,11 +164,11 @@ class ProjectController extends Controller
         if (isset($validated['tasks_to_remove'])) {
             foreach ($validated['tasks_to_remove'] as $taskId) {
                 $task = Task::where('id', $taskId)
-                    ->where('project_id', $project->id) 
+                    ->where('project_id', $project->id)
                     ->first();
 
                 if ($task) {
-                    $task->delete(); 
+                    $task->delete();
                 }
             }
         }
@@ -175,7 +184,7 @@ class ProjectController extends Controller
                         $task->status = $taskData['status'];
                         if ($taskData['status'] === 'concluída') {
                             $task->completed_at = now();
-                            $user = $task->project->user; 
+                            $user = $task->project->user;
                             $user->notify(new TaskCompletedNotification($task));
                         } else {
                             $task->completed_at = null;
