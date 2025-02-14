@@ -72,23 +72,24 @@ class ProjectController extends Controller
         return response()->json($project->load('tasks', 'address'), 201);
     }
 
-    public function index()
-{
-    $user = auth()->user();
+    public function index(Request $request)
+    {
+        $user = auth()->user();
+        $perPage = $request->query('per_page', 10);
 
-    if ($user->can('view all projects')) {
-        $projects = Project::with(['tasks', 'address'])->get();
-    } elseif ($user->can('view own projects')) {
-        $projects = Project::where('user_id', $user->id)
-            ->with(['tasks', 'address'])
-            ->get();
-    } else {
-        return response()->json(['error' => 'Você não tem permissão para acessar os projetos.'], 403);
+
+        if ($user->can('view all projects')) {
+            $projects = Project::with(['tasks', 'address'])->paginate($perPage);
+        } elseif ($user->can('view own projects')) {
+            $projects = Project::where('user_id', $user->id)
+                ->with(['tasks', 'address'])
+                ->paginate($perPage);
+        } else {
+            return response()->json(['error' => 'Você não tem permissão para acessar os projetos.'], 403);
+        }
+
+        return response()->json($projects, 200);
     }
-
-    return response()->json($projects, 200);
-}
-
 
     public function show($id)
     {
@@ -115,7 +116,7 @@ class ProjectController extends Controller
             'tasks.*.id' => 'nullable|exists:tasks,id',
             'tasks.*.title' => 'nullable|string|max:255',
             'tasks.*.description' => 'nullable|string',
-            'tasks.*.status' => 'nullable|string|in:pendente,em andamento,concluído',
+            'tasks.*.status' => 'nullable|string|in:pendente,em andamento,concluída',
             'tasks_to_remove' => 'nullable|array',
             'tasks_to_remove.*' => 'exists:tasks,id',
         ]);
@@ -184,8 +185,8 @@ class ProjectController extends Controller
                         $task->status = $taskData['status'];
                         if ($taskData['status'] === 'concluída') {
                             $task->completed_at = now();
-                            $user = $task->project->user;
-                            $user->notify(new TaskCompletedNotification($task));
+                            // $user = $task->project->user;
+                            // $user->notify(new TaskCompletedNotification($task));
                         } else {
                             $task->completed_at = null;
                         }

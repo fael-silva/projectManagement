@@ -5,22 +5,16 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Spatie\Permission\Models\Role; // Importar a classe Role, caso esteja usando roles
+use Spatie\Permission\Models\Permission; // Importar Permission para permissões diretas
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
  */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
     protected static ?string $password;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
         return [
@@ -32,13 +26,21 @@ class UserFactory extends Factory
         ];
     }
 
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
-    public function unverified(): static
+    public function withRole(string $roleName = 'user'): static
     {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
-        ]);
+        return $this->afterCreating(function ($user) use ($roleName) {
+            $role = Role::firstOrCreate(['name' => $roleName]);
+            $user->assignRole($role);
+        });
+    }
+
+    public function withPermissions(array $permissions): static
+    {
+        return $this->afterCreating(function ($user) use ($permissions) {
+            foreach ($permissions as $permissionName) {
+                $permission = Permission::firstOrCreate(['name' => $permissionName]);
+                $user->givePermissionTo($permission);
+            }
+        });
     }
 }
