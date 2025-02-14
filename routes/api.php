@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CepController;
 use App\Http\Controllers\Api\ProjectController;
+use App\Http\Controllers\Api\ReportController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -32,4 +33,13 @@ Route::middleware('jwt.auth')->group(function () {
 
 Route::middleware('jwt.auth')->group(function () {
     Route::post('/projects', [ProjectController::class, 'store']);
+    Route::get('/projects', [ProjectController::class, 'index']); 
+    Route::get('/projects/{id}', [ProjectController::class, 'show']);
+    Route::put('/projects/{id}', [ProjectController::class, 'update']);
+    Route::delete('/projects/{id}', [ProjectController::class, 'destroy']);
 });
+
+Route::middleware('jwt.auth')->group(function () {
+    Route::get('/reports/projects', [ReportController::class, 'projectsReport']); 
+});
+

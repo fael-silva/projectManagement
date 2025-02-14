@@ -18,8 +18,8 @@ return new class extends Migration
             $table->date('start_date');
             $table->date('end_date')->nullable();
             $table->enum('status', ['planejado', 'em andamento', 'concluído'])->default('planejado');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Relaciona com a tabela de usuários
-            $table->foreignId('address_id')->nullable()->constrained()->onDelete('set null'); // Relaciona com a tabela addresses
+            $table->foreignId('user_id')->constrained()->onDelete('cascade'); 
+            $table->foreignId('address_id')->nullable()->constrained()->onDelete('set null'); 
             $table->timestamps();
         });
     }
