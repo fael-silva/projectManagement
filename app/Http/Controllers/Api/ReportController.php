@@ -15,13 +15,31 @@ class ReportController extends Controller
             $startDateFrom = $request->query('start_date_from');
             $startDateTo = $request->query('start_date_to');
 
+            $user = auth()->user(); // Obtem o usuário autenticado
             $projectQuery = Project::query();
 
-            if ($startDateFrom) {
-                $projectQuery->where('start_date', '>=', $startDateFrom);
-            }
-            if ($startDateTo) {
-                $projectQuery->where('start_date', '<=', $startDateTo);
+            // Verifica as permissões do usuário
+            if ($user->can('view all projects')) {
+                // Admin pode ver todos os projetos
+                if ($startDateFrom) {
+                    $projectQuery->where('start_date', '>=', $startDateFrom);
+                }
+                if ($startDateTo) {
+                    $projectQuery->where('start_date', '<=', $startDateTo);
+                }
+            } elseif ($user->can('view own projects')) {
+                // Usuário comum só pode ver seus próprios projetos
+                $projectQuery->where('user_id', $user->id);
+
+                if ($startDateFrom) {
+                    $projectQuery->where('start_date', '>=', $startDateFrom);
+                }
+                if ($startDateTo) {
+                    $projectQuery->where('start_date', '<=', $startDateTo);
+                }
+            } else {
+                // Usuário sem permissões
+                return response()->json(['error' => 'Você não tem permissão para acessar os relatórios.'], 403);
             }
 
             $totalProjects = $projectQuery->count();
@@ -70,4 +88,5 @@ class ReportController extends Controller
             return response()->json(['error' => 'Erro ao gerar relatório', 'message' => $e->getMessage()], 500);
         }
     }
+
 }
