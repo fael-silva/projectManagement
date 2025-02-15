@@ -52,9 +52,9 @@ class ReportController extends Controller
                 $totalTasks = $taskQuery->count();
 
                 $tasksByStatus = [
-                    'pendente' => $taskQuery->where('status', 'pendente')->count(),
-                    'em andamento' => $taskQuery->where('status', 'em andamento')->count(),
-                    'concluída' => $taskQuery->where('status', 'concluída')->count(),
+                    'pendente' => (clone $taskQuery)->where('status', 'pendente')->count(),
+                    'em andamento' => (clone $taskQuery)->where('status', 'em andamento')->count(),
+                    'concluída' => (clone $taskQuery)->where('status', 'concluída')->count(),
                 ];
             }
 
@@ -70,5 +70,4 @@ class ReportController extends Controller
             return response()->json(['error' => 'Erro ao gerar relatório', 'message' => $e->getMessage()], 500);
         }
     }
-
 }
