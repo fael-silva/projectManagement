@@ -1,4 +1,3 @@
-
 # **Documentação da API - Project Management**
 
 API para gerenciamento de projetos e tarefas, com autenticação, notificações, permissões e relatórios.
@@ -40,11 +39,12 @@ API para gerenciamento de projetos e tarefas, com autenticação, notificações
 ## **2. Requisitos e Dependências**
 
 ### **2.1. Requisitos**
-- **PHP:** >= 8.1
+- **PHP:** >= 8.3
 - **Composer:** >= 2.0
 - **Laravel:** 10.x
-- **Banco de Dados:** PostgreSQL (ou SQLite para testes)
+- **Banco de Dados:** PostgreSQL
 - **Mailtrap (ou similar):** Para testes de envio de e-mails.
+- **Docker e Docker Compose:** Para rodar em containers.
 
 ### **2.2. Dependências**
 - **spatie/laravel-permission:** Gerenciamento de roles e permissões.
@@ -69,7 +69,7 @@ Copie o arquivo `.env.example` para `.env`:
 cp .env.example .env
 ```
 
-Configure as seguintes variáveis no `.env`:
+Configure as variáveis no `.env`, incluindo:
 
 #### Banco de Dados:
 ```env
@@ -128,17 +128,22 @@ O projeto estará acessível em: [http://localhost:8000](http://localhost:8000).
 
 ## **4. Como Rodar com Docker**
 
-1. Certifique-se de que o Docker e o Docker Compose estão instalados.
-2. Crie os arquivos `Dockerfile` e `docker-compose.yml` (já fornecidos anteriormente).
-3. Suba os containers:
+### **4.1. Requisitos**
+Certifique-se de que o Docker e o Docker Compose estão instalados.
+
+### **4.2. Subir os Containers**
+1. Crie os arquivos `Dockerfile` e `docker-compose.yml` (já fornecidos).
+2. Suba os containers:
    ```bash
    docker-compose up -d
    ```
-4. Acesse o container do Laravel:
+
+### **4.3. Configurar o Backend**
+1. Acesse o container do Laravel:
    ```bash
-   docker exec -it laravel-app bash
+   docker exec -it project_backend bash
    ```
-5. Execute as migrações e seeders:
+2. Execute as migrações e seeders:
    ```bash
    php artisan migrate --seed
    ```
@@ -150,8 +155,11 @@ O projeto estará acessível em: [http://localhost:8000](http://localhost:8000).
 ### **5.1. Configuração do Ambiente de Testes**
 Configure o arquivo `.env.testing` para usar SQLite em memória:
 ```env
+APP_ENV=testing
 DB_CONNECTION=sqlite
 DB_DATABASE=:memory:
+
+JWT_SECRET=Mg4ubszH659AUiKVDNv5Sk9JAM4VxKNS270OLxxidycKAawH2VWAORbYY7RocQYN
 ```
 
 ### **5.2. Executar os Testes**
@@ -177,27 +185,73 @@ php artisan test
 
 ### **6.3. Relatórios**
 - **`GET /reports/projects`**: Gera um relatório com métricas de projetos e tarefas.
-  - Filtros:
+  - Filtros: aplicado em cima da data de criação de um projeto
     - `start_date_from`
     - `start_date_to`
+
+### **6.4. CEP**
+- **`GET /cep/{cep}`**: Retorna as informações de um CEP específico.
+
+### **6.5. Dados do Usuário**
+- **`GET /me`**: Retorna os dados do usuário autenticado.
+
 
 ---
 
 ## **7. Decisões Técnicas**
 
 1. **JWT para Autenticação:**
-   - Optamos por JWT para autenticação leve e sem estado, ideal para APIs REST.
+   - Optei por JWT para autenticação leve e sem estado, ideal para APIs REST.
 
 2. **Spatie Laravel Permission:**
-   - Escolhemos este pacote para facilitar a implementação de roles e permissões, com boa escalabilidade e integração com o Laravel.
+   - Escolhi este pacote para facilitar a implementação de roles e permissões.
 
 3. **Notificações Laravel:**
-   - O sistema de notificações nativo do Laravel foi usado para enviar e-mails, com suporte a filas para melhorar a performance.
+   - O sistema de notificações nativo do Laravel foi usado para enviar e-mails.
 
 4. **Estrutura Modular:**
-   - O projeto segue o padrão MVC do Laravel, com controladores para endpoints, modelos para interações com o banco e notificações para envio de e-mails.
+   - O projeto segue o padrão MVC do Laravel.
 
 5. **Testes Automatizados:**
-   - Implementamos testes unitários e de integração para garantir a estabilidade das principais funcionalidades.
+   - Implementei testes unitários e de integração para garantir a estabilidade.
 
 ---
+
+## **8. Como Rodar a Aplicação Completa (Frontend + Backend)**
+
+### **8.1. Clone os Repositórios**
+Clone os repositórios do frontend e backend:
+```bash
+git clone <url-backend>
+git clone <url-frontend>
+```
+
+### **8.2. Configurar o Backend**
+1. Acesse o diretório do backend:
+   ```bash
+   cd backend
+   ```
+2. Suba os containers:
+   ```bash
+   docker-compose up -d
+   ```
+3. Configure o Laravel dentro do container:
+   ```bash
+   docker exec -it project_backend bash
+   composer install
+   php artisan migrate --seed
+   ```
+
+### **8.3. Configurar o Frontend**
+1. Acesse o diretório do frontend:
+   ```bash
+   cd frontend
+   ```
+2. Suba o container do frontend:
+   ```bash
+   docker-compose up -d
+   ```
+
+### **8.4. Acesse a Aplicação**
+- Frontend: [http://localhost:3000](http://localhost:3000)
+- Backend: [http://localhost:8000](http://localhost:8000)
