@@ -46,7 +46,7 @@ class ProjectController extends Controller
                 'bairro' => $viaCepData['bairro'],
                 'localidade' => $viaCepData['localidade'],
                 'uf' => $viaCepData['uf'],
-                'estado' => $viaCepData['uf'], // Ajustar se necessário
+                'estado' => $viaCepData['uf'],
                 'regiao' => $viaCepData['regiao'] ?? null,
                 'ibge' => $viaCepData['ibge'],
                 'ddd' => $viaCepData['ddd'] ?? null,

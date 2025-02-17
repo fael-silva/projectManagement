@@ -24,7 +24,7 @@ class ValidStatusTest extends TestCase
 
         $this->assertFalse($rule->passes('status', 'invalido'));
         $this->assertFalse($rule->passes('status', 'completo'));
-        $this->assertFalse($rule->passes('status', '')); // Valor vazio
+        $this->assertFalse($rule->passes('status', ''));
     }
 
     /** @test */

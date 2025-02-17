@@ -240,17 +240,17 @@ class ProjectControllerTest extends TestCase
             'status' => 'em andamento',
             'tasks' => [
                 [
-                    'id' => $task1->id, // Atualizar tarefa existente
+                    'id' => $task1->id,
                     'title' => 'Tarefa Atualizada 1',
                     'description' => 'Descrição Atualizada 1',
                     'status' => 'concluída',
                 ],
                 [
-                    'title' => 'Nova Tarefa', // Criar nova tarefa
+                    'title' => 'Nova Tarefa',
                     'description' => 'Descrição Nova',
                 ],
             ],
-            'tasks_to_remove' => [$task2->id], // Remover uma tarefa
+            'tasks_to_remove' => [$task2->id],
         ];
 
         $response = $this->putJson("/api/projects/{$project->id}", $updatePayload, [
