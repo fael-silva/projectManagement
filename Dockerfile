@@ -1,7 +1,8 @@
-FROM php:8.1-fpm
+FROM php:8.3-fpm
 
 RUN apt-get update && apt-get install -y \
     build-essential \
+    netcat-traditional \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
@@ -11,22 +12,20 @@ RUN apt-get update && apt-get install -y \
     curl \
     unzip \
     git \
+    libpq-dev \
     && docker-php-ext-install pdo pdo_mysql pdo_pgsql mbstring exif pcntl bcmath gd
 
-COPY --from=composer:2.0 /usr/bin/composer /usr/bin/composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www
 
 COPY . /var/www
 
+RUN usermod -u 1000 www-data
+
 RUN chown -R www-data:www-data /var/www
+RUN chmod -R 777 /var/www/storage /var/www/bootstrap/cache
 
 RUN composer install --optimize-autoloader --no-dev
 
-RUN php artisan config:cache && php artisan route:cache
-
-RUN chmod -R 777 /var/www/storage /var/www/bootstrap/cache
-
-EXPOSE 9000
-
-CMD ["php-fpm"]
+EXPOSE 8000
