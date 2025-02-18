@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Spatie\Permission\Traits\HasRoles;
+use App\Models\Project;
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -51,4 +52,10 @@ class User extends Authenticatable implements JWTSubject
     {
         return [];
     }
+
+    public function projects()
+    {
+        return $this->hasMany(Project::class);
+    }
+
 }

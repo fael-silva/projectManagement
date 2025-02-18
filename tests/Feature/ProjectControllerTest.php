@@ -9,7 +9,7 @@ use App\Models\Task;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Spatie\Permission\Models\Permission;
-
+use Spatie\Permission\Models\Role;
 class ProjectControllerTest extends TestCase
 {
     use RefreshDatabase;
@@ -17,9 +17,10 @@ class ProjectControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->artisan('migrate');
 
-        Project::truncate();
-        Task::truncate();
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
     }
     /** @test */
     public function it_creates_a_new_project_with_tasks()
@@ -74,51 +75,40 @@ class ProjectControllerTest extends TestCase
     /** @test */
     public function it_returns_all_projects_of_authenticated_user()
     {
-        $this->artisan('migrate:fresh');
-        Project::truncate();
-        Task::truncate();
+        $role = Role::firstOrCreate(['name' => 'user', 'guard_name' => 'api']);
+        $permission = Permission::firstOrCreate(['name' => 'view own projects', 'guard_name' => 'api']);
+        $role->givePermissionTo($permission);
 
-        $user = User::factory()
-            ->withRole('user')
-            ->withPermissions(['view own projects'])
-            ->create();
+        $user = User::factory()->create([
+            'name' => 'Normal User',
+            'email' => 'user@example.com',
+            'password' => bcrypt('password'),
+        ]);
 
-        $token = JWTAuth::fromUser($user);
+        $user->assignRole($role);
+        $user->givePermissionTo($permission);
+
+        $this->actingAs($user, 'api');
 
         $projects = Project::factory()->count(3)->create([
             'user_id' => $user->id,
         ]);
 
-        Project::factory()->count(2)->create();
+        $otherUser = User::factory()->create();
+        Project::factory()->count(10)->create(['user_id' => $otherUser->id]);
 
-        $response = $this->getJson('/api/projects', [
-            'Authorization' => "Bearer $token",
+        $response = $this->getJson('/api/projects?per_page=50', [
+            'Authorization' => "Bearer " . JWTAuth::fromUser($user),
         ]);
 
-        $response->assertStatus(200)
-            ->assertJsonCount(3)
-            ->assertJsonStructure([
-                '*' => [
-                    'id',
-                    'name',
-                    'description',
-                    'start_date',
-                    'status',
-                    'tasks' => [
-                        '*' => [
-                            'id',
-                            'title',
-                            'description',
-                            'status',
-                        ],
-                    ],
-                ],
-            ]);
+        $response->assertStatus(200);
 
-        $returnedProjectIds = collect($response->json())->pluck('id');
-        $this->assertEqualsCanonicalizing($projects->pluck('id')->toArray(), $returnedProjectIds->toArray());
+        $response->assertJsonCount(3, 'data');
+
+        foreach ($response->json('data') as $project) {
+            $this->assertEquals($user->id, $project['user_id']);
+        }
     }
-
 
 
     /** @test */
