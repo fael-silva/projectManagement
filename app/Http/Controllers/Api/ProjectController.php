@@ -153,6 +153,7 @@ class ProjectController extends Controller
                     'bairro' => $viaCepData['bairro'],
                     'localidade' => $viaCepData['localidade'],
                     'uf' => $viaCepData['uf'],
+                    'estado' => $viaCepData['uf'],
                     'complemento' => $viaCepData['complemento'] ?? null,
                 ]);
             }
