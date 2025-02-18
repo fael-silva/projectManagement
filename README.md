@@ -158,7 +158,7 @@ docker-compose -f docker-compose-project.yml up --build -d
 ### **🌐 6.4. Acesse a Aplicação**
 Após iniciar os containers, a aplicação estará disponível nos seguintes endereços:
 
-- **Frontend:** [http://localhost:3000](http://localhost:3000)
+- **Frontend:** [http://localhost:3000/login](http://localhost:3000/login)
 - **Backend:** [http://localhost:8000](http://localhost:8000)
 
 #### **🔑 Credenciais de Acesso**
